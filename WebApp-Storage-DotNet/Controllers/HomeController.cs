@@ -60,9 +60,12 @@ namespace WebApp_Storage_DotNet.Controllers
             {
                 // Retrieve storage account information from connection string
                 // How to create a storage connection string - http://msdn.microsoft.com/en-us/library/azure/ee758697.aspx
-                BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.AppSettings["StorageConnectionString"].ToString());
+                BlobServiceClient blobServiceClient = new BlobServiceClient(
+                    ConfigurationManager.AppSettings["StorageConnectionString"].ToString()
+                    );
 
                 blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+
                 await blobContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
                 // To view the uploaded blob in a browser, you have two options. The first option is to use a Shared Access Signature (SAS) token to delegate  
@@ -88,6 +91,7 @@ namespace WebApp_Storage_DotNet.Controllers
             }
         }
 
+
         /// <summary> 
         /// Task<ActionResult> UploadAsync() 
         /// Documentation References:  
@@ -99,15 +103,25 @@ namespace WebApp_Storage_DotNet.Controllers
             try
             {
                 HttpFileCollectionBase files = Request.Files;
+
                 int fileCount = files.Count;
 
                 if (fileCount > 0)
                 {
                     for (int i = 0; i < fileCount; i++)
                     {
-                        BlobClient blob = blobContainer.GetBlobClient(files[i].FileName);
-                        await blob.UploadAsync(files[i].InputStream);
 
+                        string fileName = files[i].FileName;
+                        BlobClient blob = blobContainer.GetBlobClient(fileName);
+
+                        if(!await blob.ExistsAsync())
+                        {
+                            await blob.UploadAsync(files[i].InputStream);
+                        }
+                        else
+                        {
+
+                        }
                     }
                 }
                 return RedirectToAction("Index");
@@ -182,5 +196,38 @@ namespace WebApp_Storage_DotNet.Controllers
             string ext = Path.GetExtension(filename);
             return string.Format("{0:10}_{1}{2}", DateTime.Now.Ticks, Guid.NewGuid(), ext);
         }
+
+
+        public async Task<ActionResult> getCurrentFiles()
+        {
+            try
+            {
+                // Retrieve storage account information from connection string
+                // How to create a storage connection string - http://msdn.microsoft.com/en-us/library/azure/ee758697.aspx
+                BlobServiceClient blobServiceClient = new BlobServiceClient(
+                    ConfigurationManager.AppSettings["StorageConnectionString"].ToString()
+                    );
+
+                blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+
+                await blobContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+                List<string> allBlobNames = new List<string>();
+                foreach (BlobItem blob in blobContainer.GetBlobs())
+                {
+                    if (blob.Properties.BlobType == BlobType.Block)
+                        allBlobNames.Add(blob.Name);
+                }
+
+                return Json(allBlobNames, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                ViewData["message"] = ex.Message;
+                ViewData["trace"] = ex.StackTrace;
+                return View("Error");
+            }
+        }
+
     }
 }

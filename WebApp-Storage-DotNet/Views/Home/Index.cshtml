@@ -27,7 +27,7 @@
 @using (Html.BeginForm("UploadAsync", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     <div class="fileUpload btn btn-default">
-        <span>Select Files</span><input type="file" id="file" name="selectFiles" class="upload" onchange="DisplayFilesToUpload()" multiple />
+        <span>Select Files</span><input type="file" id="file" name="selectFiles" class="upload" onchange="getExistingFiles()" multiple />
     </div>
     @* This gets populated from the DisplayFilesToUpload() JS function*@
     <p id="FilesToUpload"></p>
@@ -61,21 +61,43 @@
         });
     }
 
+    var existingFiles = {};
+
     //Lists the file name and size for all files to be uploaded by updating the <p id="FilesToUpload"></p> control
+
     function DisplayFilesToUpload() {
         var element = document.getElementById("file");
         var html = "";
 
         html = "<h3>Image(s) to Upload</h3>"
         for (var i = 0; i < element.files.length; i++) {
-            html += "<strong>" + (i + 1) + "</strong>. File: ";
             var file = element.files[i];
-            if ('name' in file) {html += file.name + " (";}
-            if ('size' in file) {html += "size: " + file.size + " bytes)<br>";}
+            var fileName = file.name;
+            var fileSize = "size: " + file.size + " bytes";
+
+            html += "<strong>" + (i + 1) + "</strong>. File: ";
+            if (existingFiles.hasOwnProperty(fileName)) {
+                html += "<span style='color: red;'>" + fileName + " (This specific file already exists)</span> ";
+            } else {
+                html += fileName + " ";
+            }
+            html += "(" + fileSize + ")<br>";
         }
 
-        html += "<div class='fileUpload btn btn-default'><span>Upload</span><input type='submit' class='upload' value='Upload'/></div>"
+        html += "<div class='fileUpload btn btn-default'><span>Upload</span><input type='submit' class='upload' value='Upload'/></div>";
         document.getElementById("FilesToUpload").innerHTML = html;
+    }
+
+
+    function getExistingFiles() {
+        var url = "/Home/getCurrentFiles";
+        $.get(url, function (data) {
+            
+            data.forEach(function (fileName) {
+                existingFiles[fileName] = true;
+            });
+            DisplayFilesToUpload();
+        });
     }
 
 </script>

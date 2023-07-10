@@ -106,7 +106,8 @@ namespace WebApp_Storage_DotNet.Controllers
                     for (int i = 0; i < fileCount; i++)
                     {
                         BlobClient blob = blobContainer.GetBlobClient(GetRandomBlobName(files[i].FileName));
-                        await blob.UploadAsync(files[i].FileName);
+                        await blob.UploadAsync(files[i].InputStream);
+
                     }
                 }
                 return RedirectToAction("Index");

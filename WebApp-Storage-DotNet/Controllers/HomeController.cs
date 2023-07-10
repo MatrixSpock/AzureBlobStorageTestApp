@@ -114,9 +114,18 @@ namespace WebApp_Storage_DotNet.Controllers
                         string fileName = files[i].FileName;
                         BlobClient blob = blobContainer.GetBlobClient(fileName);
 
-                        if(!await blob.ExistsAsync())
+                        if (!await blob.ExistsAsync())
                         {
-                            await blob.UploadAsync(files[i].InputStream);
+                            string contentType = MimeMapping.GetMimeMapping(fileName);
+                            //blob.SetHttpHeaders(new BlobHttpHeaders { ContentType = contentType });
+
+                            await blob.UploadAsync(
+                                files[i].InputStream,
+                                new BlobHttpHeaders
+                                {
+                                    ContentType = contentType
+                                },
+                                conditions: null);
                         }
                         else
                         {

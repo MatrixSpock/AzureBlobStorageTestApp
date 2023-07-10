@@ -1,16 +1,16 @@
 ﻿@*
-//----------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//
-// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
-// EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES
-// OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-//----------------------------------------------------------------------------------
-// The example companies, organizations, products, domain names,
-// e-mail addresses, logos, people, places, and events depicted
-// herein are fictitious.  No association with any real company,
-// organization, product, domain name, email address, logo, person,
-// places, or events is intended or should be inferred.
+    //----------------------------------------------------------------------------------
+    // Copyright (c) Microsoft Corporation. All rights reserved.
+    //
+    // THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+    // EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES
+    // OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+    //----------------------------------------------------------------------------------
+    // The example companies, organizations, products, domain names,
+    // e-mail addresses, logos, people, places, and events depicted
+    // herein are fictitious.  No association with any real company,
+    // organization, product, domain name, email address, logo, person,
+    // places, or events is intended or should be inferred.
 *@
 
 @{
@@ -21,16 +21,16 @@
     <h2>Azure Blob Storage Sample App</h2>
 </div>
 
-@*Select Files and Upload: Displays a 'Select Files' button that uses a File Upload control to select files to be uploaded and 
-  calls the JS function: DisplayFilesToUpload() that lists the file name and size for all files to be uploaded. 
-  Also the JS function displays the Upload submit button that calls UploadAsync that uploads the files to Azure Blob Storage.*@
+@*Select Files and Upload: Displays a 'Select Files' button that uses a File Upload control to select files to be uploaded and
+    calls the JS function: DisplayFilesToUpload() that lists the file name and size for all files to be uploaded.
+    Also the JS function displays the Upload submit button that calls UploadAsync that uploads the files to Azure Blob Storage.*@
 @using (Html.BeginForm("UploadAsync", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     <div class="fileUpload btn btn-default">
         <span>Select Files</span><input type="file" id="file" name="selectFiles" class="upload" onchange="getExistingFiles()" multiple />
     </div>
     @* This gets populated from the DisplayFilesToUpload() JS function*@
-    <p id="FilesToUpload"></p>
+    <p id="FilesToUpload" class="video-preview"></p>
 }
 
 @*loops through all files and displays three items:
@@ -42,16 +42,24 @@
     foreach (var item in Model)
     {
         <div class="imageBlock">
-            <a href="@item" target="_blank"><img class="thumb" src="@item" alt="images"/></a><br />
+            @if (!string.IsNullOrEmpty(item.OriginalString) && Path.GetExtension(item.OriginalString)?.ToLower() == ".mp4")
+            {
+                <video width="320" height="240" controls>
+                    <source src="@item" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            }
+            else
+            {
+                <a href="@item" target="_blank"><img class="thumb" src="@item" alt="images" /></a>
+            }
+            <br />
             <div class="deleteDiv"><img class="deleteIcon" src="~/Images/deleteImage.png" title="Delete Image" onclick="deleteImage('@item');" /></div>
         </div>
     }
-
-    using (Html.BeginForm("DeleteAll", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
-    {
-        <div class="fileUpload btn btn-default"><span>Delete All Files</span><input type="submit" name="deleteAll" class="upload" /></div>
-    }
 }
+
+
 <script>
     //Calls async Task<ActionResult> DeleteImage(string name) in the HomeController and Refreshes the page
     function deleteImage(item) {
@@ -69,7 +77,7 @@
         var element = document.getElementById("file");
         var html = "";
 
-        html = "<h3>Image(s) to Upload</h3>"
+        html = "<h3>File(s) to Upload</h3>";
         for (var i = 0; i < element.files.length; i++) {
             var file = element.files[i];
             var fileName = file.name;
@@ -92,7 +100,7 @@
     function getExistingFiles() {
         var url = "/Home/getCurrentFiles";
         $.get(url, function (data) {
-            
+
             data.forEach(function (fileName) {
                 existingFiles[fileName] = true;
             });

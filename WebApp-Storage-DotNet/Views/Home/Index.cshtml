@@ -1,19 +1,4 @@
-﻿@*
-    //----------------------------------------------------------------------------------
-    // Copyright (c) Microsoft Corporation. All rights reserved.
-    //
-    // THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
-    // EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES
-    // OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-    //----------------------------------------------------------------------------------
-    // The example companies, organizations, products, domain names,
-    // e-mail addresses, logos, people, places, and events depicted
-    // herein are fictitious.  No association with any real company,
-    // organization, product, domain name, email address, logo, person,
-    // places, or events is intended or should be inferred.
-*@
-
-@{
+﻿@{
     ViewBag.Title = "Index";
 }
 @*Header Section*@
@@ -41,21 +26,35 @@
 {
     foreach (var item in Model)
     {
+        var decodedFileName = System.Web.HttpUtility.UrlDecode(Path.GetFileName(item.OriginalString));
+
         <div class="imageBlock">
-            @if (!string.IsNullOrEmpty(item.OriginalString) && Path.GetExtension(item.OriginalString)?.ToLower() == ".mp4")
+            @if (!string.IsNullOrEmpty(decodedFileName) && Path.GetExtension(decodedFileName)?.ToLower() == ".mp4")
             {
                 <video width="320" height="240" controls>
                     <source src="@item" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
+                <br />
+                <div class="downloadDiv">
+                    <a href="@Url.Action("Download", "Home", new { filename = decodedFileName })">@decodedFileName</a>
+                </div>
             }
             else
             {
                 <a href="@item" target="_blank"><img class="thumb" src="@item" alt="images" /></a>
+                <br />
+                <div class="downloadDiv">
+                    <a href="@Url.Action("Download", "Home", new { filename = decodedFileName })">@decodedFileName</a>
+                </div>
             }
             <br />
             <div class="deleteDiv"><img class="deleteIcon" src="~/Images/deleteImage.png" title="Delete Image" onclick="deleteImage('@item');" /></div>
         </div>
+    }
+    using (Html.BeginForm("DeleteAll", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <div class="fileUpload btn btn-default"><span>Delete All Files</span><input type="submit" name="deleteAll" class="upload" /></div>
     }
 }
 

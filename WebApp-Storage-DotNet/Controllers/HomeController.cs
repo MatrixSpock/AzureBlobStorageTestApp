@@ -143,6 +143,34 @@ namespace WebApp_Storage_DotNet.Controllers
             }
         }
 
+        public async Task<ActionResult> Download(string filename)
+        {
+            try
+            {
+                BlobClient blob = blobContainer.GetBlobClient(filename);
+                if (await blob.ExistsAsync())
+                {
+                    var stream = await blob.OpenReadAsync();
+
+                    // Determine the content type based on the file extension
+                    string contentType = MimeMapping.GetMimeMapping(filename);
+
+                    return File(stream, contentType, filename);
+                }
+                else
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewData["message"] = ex.Message;
+                ViewData["trace"] = ex.StackTrace;
+                return View("Error");
+            }
+        }
+
+
         /// <summary> 
         /// Task<ActionResult> DeleteImage(string name) 
         /// Documentation References:  
